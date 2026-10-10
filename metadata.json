@@ -1,0 +1,6 @@
+{
+  "name": "Puzzle Earn",
+  "description": "Mobile casual sliding picture puzzle game with coin rewards, task system, and withdrawal wallet.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

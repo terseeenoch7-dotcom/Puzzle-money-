@@ -1,0 +1,8 @@
+{
+  "firestore": [
+    {
+      "database": "ai-studio-android-puzzleea-550aea56-e2a8-4be0-b040-0501fe72c668",
+      "rules": "firestore.rules"
+    }
+  ]
+}

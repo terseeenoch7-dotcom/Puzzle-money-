@@ -1,0 +1,15 @@
+{
+  "entities": {
+    "User": {
+      "collection": "users",
+      "fields": {
+        "userId": "string",
+        "email": "string",
+        "displayName": "string",
+        "avatarUrl": "string",
+        "coinBalance": "number",
+        "createdAt": "timestamp"
+      }
+    }
+  }
+}
