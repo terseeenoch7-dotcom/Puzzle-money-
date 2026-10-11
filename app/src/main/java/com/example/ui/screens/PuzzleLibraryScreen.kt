@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.ads.AdBannerComposable
 import com.example.data.model.PuzzleImage
 import com.example.ui.components.ButtonColorType
 import com.example.ui.components.CoinBalanceBadge
@@ -158,6 +159,11 @@ fun PuzzleLibraryScreen(
             placeholder = "Search picture titles or tap mic..."
         )
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // TOP AD BANNER
+        AdBannerComposable()
+
         Spacer(modifier = Modifier.height(12.dp))
 
         // Main Tabs: All, New, Popular, Featured, Favorites
@@ -249,6 +255,11 @@ fun PuzzleLibraryScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // MIDDLE AD BANNER
+        AdBannerComposable()
+
         Spacer(modifier = Modifier.height(12.dp))
 
         // Grid of Puzzles
@@ -296,6 +307,13 @@ fun PuzzleLibraryScreen(
                         onPlay = { onNavigateToGame(puzzle.id) },
                         onFavorite = { libraryViewModel.toggleFavorite(puzzle) }
                     )
+                }
+
+                // BOTTOM AD BANNER
+                item(span = { GridItemSpan(2) }, key = "library_bottom_banner") {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AdBannerComposable()
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }

@@ -52,6 +52,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ads.AdBannerComposable
+import com.example.data.auth.AdminAuthHelper
 import com.example.ui.components.ButtonColorType
 import com.example.ui.components.CoinBalanceBadge
 import com.example.ui.components.GameCard
@@ -199,60 +201,68 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(18.dp))
         }
 
-        // Admin Access Launcher Card
-        item {
-            GameCard(
-                modifier = Modifier.fillMaxWidth(),
-                backgroundColor = GameSurfaceElevated,
-                borderColor = GameCyan,
-                onClick = onNavigateToAdmin
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+        // TOP AD BANNER
+        item(key = "profile_top_banner") {
+            AdBannerComposable()
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Admin Access Launcher Card (strictly visible ONLY to crowned administrator accounts)
+        if (AdminAuthHelper.isUserAdmin(user?.role, user?.email)) {
+            item(key = "profile_admin_card") {
+                GameCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    backgroundColor = GameSurfaceElevated,
+                    borderColor = GameCyan,
+                    onClick = onNavigateToAdmin
                 ) {
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(GameCyan.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(GameCyan.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AdminPanelSettings,
+                                contentDescription = null,
+                                tint = GameCyan,
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Admin Control Room",
+                                color = TextWhite,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Black
+                            )
+                            Text(
+                                text = "Manage puzzles, reward policy, users & payouts",
+                                color = TextSubtitle,
+                                fontSize = 12.sp
+                            )
+                        }
+
                         Icon(
-                            imageVector = Icons.Default.AdminPanelSettings,
+                            imageVector = Icons.Default.ChevronRight,
                             contentDescription = null,
-                            tint = GameCyan,
-                            modifier = Modifier.size(26.dp)
+                            tint = GameCyan
                         )
                     }
-
-                    Spacer(modifier = Modifier.width(14.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Admin Control Room",
-                            color = TextWhite,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Black
-                        )
-                        Text(
-                            text = "Manage puzzles, reward policy, users & payouts",
-                            color = TextSubtitle,
-                            fontSize = 12.sp
-                        )
-                    }
-
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = GameCyan
-                    )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(18.dp))
+            }
         }
 
         // Account & Security Options
@@ -342,6 +352,13 @@ fun ProfileScreen(
                     testTag = "profile_google_sign_in_button"
                 )
             }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // BOTTOM AD BANNER
+        item(key = "profile_bottom_banner") {
+            AdBannerComposable()
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

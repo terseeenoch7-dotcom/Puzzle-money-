@@ -51,6 +51,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ads.AdBannerComposable
+import com.example.data.auth.AdminAuthHelper
 import com.example.data.model.PuzzleImage
 import com.example.ui.components.ButtonColorType
 import com.example.ui.components.CoinBalanceBadge
@@ -147,25 +149,34 @@ fun HomeScreen(
                         onClick = onNavigateToWallet
                     )
 
-                    Spacer(modifier = Modifier.width(6.dp))
+                    // Admin Panel button visible ONLY to crowned administrator accounts
+                    if (AdminAuthHelper.isUserAdmin(user?.role, user?.email)) {
+                        Spacer(modifier = Modifier.width(6.dp))
 
-                    IconButton(
-                        onClick = onNavigateToAdmin,
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(GameSurfaceElevated)
-                            .testTag("home_admin_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AdminPanelSettings,
-                            contentDescription = "Admin Panel",
-                            tint = GameCyan,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        IconButton(
+                            onClick = onNavigateToAdmin,
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(GameSurfaceElevated)
+                                .testTag("home_admin_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AdminPanelSettings,
+                                contentDescription = "Admin Panel",
+                                tint = GameCyan,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
+        }
+
+        // TOP AD BANNER
+        item(key = "home_top_banner") {
+            AdBannerComposable()
+            Spacer(modifier = Modifier.height(14.dp))
         }
 
         // Featured Hero Puzzle Card
@@ -241,6 +252,12 @@ fun HomeScreen(
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+
+        // MIDDLE AD BANNER
+        item(key = "home_middle_banner") {
+            AdBannerComposable()
             Spacer(modifier = Modifier.height(20.dp))
         }
 
@@ -344,6 +361,13 @@ fun HomeScreen(
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+
+        // BOTTOM AD BANNER
+        item(key = "home_bottom_banner") {
+            AdBannerComposable()
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

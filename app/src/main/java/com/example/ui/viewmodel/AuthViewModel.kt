@@ -51,6 +51,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         val email = firebaseUser.email ?: "player@puzzleearn.com"
         val photoUrl = firebaseUser.photoUrl?.toString() ?: ""
 
+        val isAdmin = com.example.data.auth.AdminAuthHelper.isAdminEmail(email)
+
         if (existing == null) {
             // New user registered via Google
             val newUser = User(
@@ -62,17 +64,19 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 coinBalance = 5000L, // Registration bonus
                 totalCoinsEarned = 5000L,
                 totalCoinsWithdrawn = 0L,
-                role = if (email == "emziyproverfiy@gmail.com") "SUPER_ADMIN" else "USER",
+                role = if (isAdmin) "ADMIN" else "USER",
                 status = "ACTIVE"
             )
             userDao.insertUser(newUser)
         } else {
-            // Update existing user profile info
+            // Update existing user profile info and upgrade to ADMIN if designated email
+            val resolvedRole = if (isAdmin) "ADMIN" else existing.role
             userDao.insertUser(
                 existing.copy(
                     username = displayName,
                     email = email,
                     avatarUrl = photoUrl,
+                    role = resolvedRole,
                     updatedAt = System.currentTimeMillis()
                 )
             )

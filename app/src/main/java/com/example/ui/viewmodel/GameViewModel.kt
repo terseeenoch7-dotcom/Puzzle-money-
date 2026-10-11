@@ -142,12 +142,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Called when the hidden 1-minute cycle completes to trigger interstitial/rewarded ad
+     * Called when the hidden 1-minute cycle completes to trigger interstitial ad
      * and grant an extra 1 minute to continue playing.
      */
     fun onCycleAdTriggered(activity: Activity) {
         _uiState.value = _uiState.value.copy(shouldShowCycleAd = false)
-        adManager.showInterstitialAdIfReady(activity)
+        adManager.showInterstitialAdForced(activity)
     }
 
     /**
@@ -156,7 +156,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun restartPuzzleWithAd(activity: Activity?) {
         val puzzle = _uiState.value.puzzle ?: return
         if (activity != null) {
-            adManager.showInterstitialAdIfReady(activity)
+            adManager.showInterstitialAdForced(activity)
         }
         loadPuzzle(puzzle.id)
     }

@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ads.AdBannerComposable
 import com.example.game.SlidingPuzzleEngine
 import com.example.ui.components.ButtonColorType
 import com.example.ui.components.CelebrationPopup
@@ -168,7 +169,12 @@ fun PuzzleGameScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // TOP AD BANNER
+            AdBannerComposable()
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Gameplay Stats Row: Moves, Timer, Target
             GameCard(
@@ -462,6 +468,11 @@ fun PuzzleGameScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // BOTTOM AD BANNER
+            AdBannerComposable(modifier = Modifier.padding(bottom = 12.dp))
         }
 
         // Solved Waiting Claim Modal: Rewarded Ad verification before coins are granted

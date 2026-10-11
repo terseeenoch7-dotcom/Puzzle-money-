@@ -76,6 +76,11 @@ class WalletViewModel(application: Application) : AndroidViewModel(application) 
         val state = _uiState.value
         val coins = state.withdrawalCoinsInput.toLongOrNull() ?: 0L
 
+        if (!com.example.util.NetworkMonitor.getInstance(getApplication()).isCurrentlyOnline()) {
+            _uiState.value = state.copy(errorMessage = "Active internet connection required to request withdrawals.")
+            return
+        }
+
         if (state.paymentDetailsInput.isBlank()) {
             _uiState.value = state.copy(errorMessage = "Please enter payment details / account address.")
             return

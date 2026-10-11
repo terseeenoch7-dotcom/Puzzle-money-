@@ -23,6 +23,10 @@ class RewardManager(private val context: Context) {
         puzzleId: String,
         rewardCoins: Long
     ): Result<String> = withContext(Dispatchers.IO) {
+        if (!com.example.util.NetworkMonitor.getInstance(context).isCurrentlyOnline()) {
+            return@withContext Result.failure(Exception("Internet connection required to calculate and record rewards."))
+        }
+
         val pendingId = "prw_" + UUID.randomUUID().toString().take(10)
         val pending = PendingReward(
             id = pendingId,
@@ -44,6 +48,10 @@ class RewardManager(private val context: Context) {
         taskId: String,
         rewardCoins: Long
     ): Result<String> = withContext(Dispatchers.IO) {
+        if (!com.example.util.NetworkMonitor.getInstance(context).isCurrentlyOnline()) {
+            return@withContext Result.failure(Exception("Internet connection required to verify tasks and record rewards."))
+        }
+
         val pendingId = "prw_task_" + UUID.randomUUID().toString().take(10)
         val pending = PendingReward(
             id = pendingId,
@@ -67,6 +75,11 @@ class RewardManager(private val context: Context) {
         moves: Int = 0,
         timeSeconds: Long = 0L
     ): Result<Long> = withContext(Dispatchers.IO) {
+        // Enforce active internet connectivity before crediting user coins
+        if (!com.example.util.NetworkMonitor.getInstance(context).isCurrentlyOnline()) {
+            return@withContext Result.failure(Exception("Active internet connection required to store and credit coins to your balance."))
+        }
+
         // 1. Verify ad was genuinely completed
         if (!adResult.isCompleted || adResult.adReferenceId.isBlank()) {
             return@withContext Result.failure(Exception("Ad verification failed. Reward was not completed."))

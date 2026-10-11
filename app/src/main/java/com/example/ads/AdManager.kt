@@ -70,16 +70,19 @@ import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextSubtitle
 import com.example.ui.theme.TextWhite
 import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.example.util.NetworkMonitor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -163,6 +166,11 @@ class AdManager private constructor(private val appContext: Context) {
 
     init {
         try {
+            val reqConfig = RequestConfiguration.Builder()
+                .setTestDeviceIds(listOf(AdRequest.DEVICE_ID_EMULATOR))
+                .build()
+            MobileAds.setRequestConfiguration(reqConfig)
+
             MobileAds.initialize(appContext) { initStatus ->
                 Log.d(TAG, "AdMob MobileAds initialized: $initStatus")
                 preloadRewardedAd()
@@ -174,6 +182,7 @@ class AdManager private constructor(private val appContext: Context) {
     }
 
     fun preloadRewardedAd() {
+        if (!NetworkMonitor.getInstance(appContext).isCurrentlyOnline()) return
         if (admobRewardedAd != null || isAdmobRewardedLoading) return
 
         isAdmobRewardedLoading = true
@@ -203,6 +212,7 @@ class AdManager private constructor(private val appContext: Context) {
     }
 
     fun preloadInterstitialAd() {
+        if (!NetworkMonitor.getInstance(appContext).isCurrentlyOnline()) return
         if (admobInterstitialAd != null || isAdmobInterstitialLoading) return
 
         isAdmobInterstitialLoading = true
@@ -379,6 +389,34 @@ class AdManager private constructor(private val appContext: Context) {
             return
         }
 
+        val ad = admobInterstitialAd
+        if (ad != null) {
+            ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                override fun onAdShowedFullScreenContent() {
+                    lastInterstitialTime = System.currentTimeMillis()
+                    recordEvent("AdMob", "INTERSTITIAL", "SHOWN")
+                }
+
+                override fun onAdDismissedFullScreenContent() {
+                    admobInterstitialAd = null
+                    preloadInterstitialAd()
+                }
+
+                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                    admobInterstitialAd = null
+                    preloadInterstitialAd()
+                }
+            }
+            ad.show(activity)
+        } else {
+            preloadInterstitialAd()
+        }
+    }
+
+    /**
+     * Shows interstitial ad immediately without cooldown checks, e.g. on game restart or 1-minute round exhaustion.
+     */
+    fun showInterstitialAdForced(activity: Activity) {
         val ad = admobInterstitialAd
         if (ad != null) {
             ad.fullScreenContentCallback = object : FullScreenContentCallback() {
@@ -676,6 +714,26 @@ fun AdBannerComposable(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val adManager = remember { AdManager.getInstance(context) }
+    val networkMonitor = remember { NetworkMonitor.getInstance(context) }
+    val isOnline by networkMonitor.isOnline.collectAsState()
+    var currentAdView by remember { androidx.compose.runtime.mutableStateOf<AdView?>(null) }
+
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            try {
+                currentAdView?.pause()
+                currentAdView?.destroy()
+                currentAdView = null
+            } catch (e: Exception) {
+                Log.w("AdManager", "Error disposing AdView: ${e.message}")
+            }
+        }
+    }
+
+    if (!isOnline) {
+        // App strictly requires internet; render empty placeholder when disconnected
+        return
+    }
 
     Box(
         modifier = modifier
@@ -692,7 +750,31 @@ fun AdBannerComposable(
                 AdView(ctx).apply {
                     setAdSize(AdSize.BANNER)
                     adUnitId = adManager.getBannerUnitId()
-                    loadAd(AdRequest.Builder().build())
+                    // Set software layer to prevent GPU Mesa DRI rendernode access exceptions
+                    setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
+                    adListener = object : AdListener() {
+                        override fun onAdLoaded() {
+                            Log.d("AdManager", "AdMob Banner ad loaded.")
+                        }
+
+                        override fun onAdFailedToLoad(error: LoadAdError) {
+                            Log.w("AdManager", "AdMob Banner ad failed to load: ${error.message} (code ${error.code})")
+                        }
+                    }
+                    try {
+                        loadAd(AdRequest.Builder().build())
+                    } catch (e: Exception) {
+                        Log.e("AdManager", "Error requesting banner ad: ${e.message}")
+                    }
+                    currentAdView = this
+                }
+            },
+            onRelease = { adView ->
+                try {
+                    adView.pause()
+                    adView.destroy()
+                } catch (e: Exception) {
+                    Log.w("AdManager", "Error onRelease AdView: ${e.message}")
                 }
             }
         )

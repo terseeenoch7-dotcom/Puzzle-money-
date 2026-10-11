@@ -134,6 +134,12 @@ fun TasksScreen(
                 }
             }
 
+            // TOP AD BANNER
+            item(key = "tasks_top_banner") {
+                AdBannerComposable()
+                Spacer(modifier = Modifier.height(14.dp))
+            }
+
             // Error Banner (e.g. ad closed early)
             if (errorMessage != null) {
                 item {
@@ -223,6 +229,12 @@ fun TasksScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            // MIDDLE AD BANNER
+            item(key = "tasks_middle_banner") {
+                AdBannerComposable()
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             // Tasks Section Title
             item {
                 Row(
@@ -289,8 +301,8 @@ fun TasksScreen(
                 Spacer(modifier = Modifier.height(14.dp))
             }
 
-            // Ad Banner at bottom of task list
-            item {
+            // Ad Banner at bottom of task list with stable item key
+            item(key = "tasks_ad_banner_key") {
                 Spacer(modifier = Modifier.height(10.dp))
                 AdBannerComposable()
                 Spacer(modifier = Modifier.height(20.dp))

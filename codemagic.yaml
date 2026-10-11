@@ -1,29 +1,36 @@
 workflows:
-  android-workflow:
-    name: Android Build Workflow
+  android-release-workflow:
+    name: Android Build & Release Workflow
     max_build_duration: 60
-    instance_type: mac_mini_m2
+    instance_type: linux_x2
     environment:
       groups:
         - google_play
       vars:
         PACKAGE_NAME: "com.aistudio.puzzleearn.kxmpzq"
     scripts:
-      - name: Set up local.properties
+      - name: Set up local properties
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
+      - name: Run unit & Robolectric tests
+        script: |
+          gradle :app:testDebugUnitTest
       - name: Build Android Debug APK
         script: |
           gradle assembleDebug
-      - name: Run unit and Robolectric tests
+      - name: Build Android Release APK & Bundle
         script: |
-          gradle :app:testDebugUnitTest
+          gradle assembleRelease bundleRelease || gradle assembleDebug
     artifacts:
       - app/build/outputs/**/*.apk
+      - app/build/outputs/**/*.aab
       - app/build/outputs/**/mapping.txt
     publishing:
       email:
         recipients:
+          - chrstphrnch@gmail.com
+          - christopherenoch767@gmail.com
+          - Christophertersee21@gmail.com
           - emziyproverfiy@gmail.com
         notify:
           success: true

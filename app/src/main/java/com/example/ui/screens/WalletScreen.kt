@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ads.AdBannerComposable
 import com.example.data.model.CoinTransaction
 import com.example.data.model.Withdrawal
 import com.example.ui.components.ButtonColorType
@@ -215,6 +216,12 @@ fun WalletScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
+        // TOP AD BANNER
+        item(key = "wallet_top_banner") {
+            AdBannerComposable()
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         // Sub Tabs: Request Payout, Ledger History, My Requests
         item {
             TabRow(
@@ -263,7 +270,12 @@ fun WalletScreen(
                     }
                 )
             }
+            Spacer(modifier = Modifier.height(14.dp))
+        }
 
+        // MIDDLE AD BANNER
+        item(key = "wallet_middle_banner") {
+            AdBannerComposable()
             Spacer(modifier = Modifier.height(16.dp))
         }
 
@@ -502,6 +514,13 @@ fun WalletScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
+        }
+
+        // BOTTOM AD BANNER
+        item(key = "wallet_bottom_banner") {
+            Spacer(modifier = Modifier.height(10.dp))
+            AdBannerComposable()
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
