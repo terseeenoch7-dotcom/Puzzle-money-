@@ -32,6 +32,8 @@ data class GameUiState(
     val isHintVisible: Boolean = false,
     val showTileNumbers: Boolean = false,
     val elapsedSeconds: Long = 0L,
+    val hiddenCycleSeconds: Int = 0,
+    val shouldShowCycleAd: Boolean = false,
     val aiHintText: String? = null,
     val isRequestingAiHint: Boolean = false,
     val isSolvedWaitingClaim: Boolean = false,
@@ -116,12 +118,47 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 delay(1000L)
                 val current = _uiState.value
                 if (current.puzzleState?.isSolved != true) {
-                    _uiState.value = current.copy(elapsedSeconds = current.elapsedSeconds + 1)
+                    val newElapsed = current.elapsedSeconds + 1
+                    val newHiddenCycle = current.hiddenCycleSeconds + 1
+
+                    if (newHiddenCycle >= 60) {
+                        // 1 minute exhausted: trigger auto-ad and give extra 1 minute cycle
+                        _uiState.value = current.copy(
+                            elapsedSeconds = newElapsed,
+                            hiddenCycleSeconds = 0,
+                            shouldShowCycleAd = true
+                        )
+                    } else {
+                        _uiState.value = current.copy(
+                            elapsedSeconds = newElapsed,
+                            hiddenCycleSeconds = newHiddenCycle
+                        )
+                    }
                 } else {
                     break
                 }
             }
         }
+    }
+
+    /**
+     * Called when the hidden 1-minute cycle completes to trigger interstitial/rewarded ad
+     * and grant an extra 1 minute to continue playing.
+     */
+    fun onCycleAdTriggered(activity: Activity) {
+        _uiState.value = _uiState.value.copy(shouldShowCycleAd = false)
+        adManager.showInterstitialAdIfReady(activity)
+    }
+
+    /**
+     * Restart puzzle with mandatory ad presentation as requested.
+     */
+    fun restartPuzzleWithAd(activity: Activity?) {
+        val puzzle = _uiState.value.puzzle ?: return
+        if (activity != null) {
+            adManager.showInterstitialAdIfReady(activity)
+        }
+        loadPuzzle(puzzle.id)
     }
 
     fun onTileClicked(index: Int) {

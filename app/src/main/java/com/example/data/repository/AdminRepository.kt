@@ -159,4 +159,66 @@ class AdminRepository(private val db: AppDatabase) {
         )
         return Result.success(Unit)
     }
+
+    suspend fun updateTask(adminId: String, task: GameTask): Result<Unit> {
+        db.taskDao().updateTask(task)
+        db.auditDao().insertAudit(
+            AuditLog(
+                adminId = adminId,
+                action = "UPDATE_TASK",
+                target = task.id,
+                oldValue = "TASK",
+                newValue = "${task.title} (${task.rewardCoins} coins)",
+                reason = "Admin edited task"
+            )
+        )
+        return Result.success(Unit)
+    }
+
+    suspend fun deleteTask(adminId: String, taskId: String): Result<Unit> {
+        db.taskDao().deleteTask(taskId)
+        db.auditDao().insertAudit(
+            AuditLog(
+                adminId = adminId,
+                action = "DELETE_TASK",
+                target = taskId,
+                oldValue = taskId,
+                newValue = "DELETED",
+                reason = "Admin deleted task"
+            )
+        )
+        return Result.success(Unit)
+    }
+
+    suspend fun updatePuzzle(adminId: String, puzzle: PuzzleImage): Result<Unit> {
+        db.puzzleDao().updatePuzzle(puzzle)
+        db.auditDao().insertAudit(
+            AuditLog(
+                adminId = adminId,
+                action = "UPDATE_PUZZLE",
+                target = puzzle.id,
+                oldValue = "PUZZLE",
+                newValue = "${puzzle.title} (${puzzle.category}, ${puzzle.difficulty})",
+                reason = "Admin modified puzzle"
+            )
+        )
+        return Result.success(Unit)
+    }
+
+    suspend fun updateUser(adminId: String, user: User): Result<Unit> {
+        db.userDao().insertUser(user)
+        db.auditDao().insertAudit(
+            AuditLog(
+                adminId = adminId,
+                action = "UPDATE_USER",
+                target = user.id,
+                oldValue = user.username,
+                newValue = "${user.role} • ${user.status} • ${user.coinBalance} coins",
+                reason = "Admin updated user details"
+            )
+        )
+        return Result.success(Unit)
+    }
+
+    fun getAllTasks(): Flow<List<GameTask>> = db.taskDao().getAllTasks()
 }

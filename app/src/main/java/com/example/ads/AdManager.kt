@@ -119,10 +119,16 @@ class AdManager private constructor(private val appContext: Context) {
     private val db = AppDatabase.getDatabase(appContext)
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    // AdMob Standard Test IDs
-    private val testRewardedUnitId = "ca-app-pub-3940256099942544/5224354917"
-    private val testInterstitialUnitId = "ca-app-pub-3940256099942544/1033173712"
-    val testBannerUnitId = "ca-app-pub-3940256099942544/6300978111"
+    // Live Production Google AdMob Ad Unit IDs
+    val productionRewardedUnitId = "ca-app-pub-1621437411635895/9099285842"
+    val productionInterstitialUnitId = "ca-app-pub-1621437411635895/8232926735"
+    val productionRewardedInterstitialUnitId = "ca-app-pub-1621437411635895/1782059293"
+    val productionBannerUnitId = "ca-app-pub-1621437411635895/4011315629"
+
+    // Active Ad Unit IDs pointing directly to Live AdMob Units
+    fun getRewardedUnitId(): String = productionRewardedUnitId
+    fun getInterstitialUnitId(): String = productionInterstitialUnitId
+    fun getBannerUnitId(): String = productionBannerUnitId
 
     // Unity Ads Placement IDs
     val unityGameId = "5432101"
@@ -143,8 +149,8 @@ class AdManager private constructor(private val appContext: Context) {
     private var lastInterstitialTime = 0L
     var interstitialCooldownMs = 45000L // 45 seconds frequency capping
 
-    // Configuration
-    var isTestMode: Boolean = true
+    // Configuration - Live Production Mode (no test ads)
+    var isTestMode: Boolean = false
     var networkPriority: String = "ADMOB_FIRST" // "ADMOB_FIRST", "UNITY_FIRST", "ADMOB_ONLY", "UNITY_ONLY"
 
     // Telemetry State
@@ -176,7 +182,7 @@ class AdManager private constructor(private val appContext: Context) {
         val adRequest = AdRequest.Builder().build()
         RewardedAd.load(
             appContext,
-            testRewardedUnitId,
+            getRewardedUnitId(),
             adRequest,
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(rewardedAd: RewardedAd) {
@@ -205,7 +211,7 @@ class AdManager private constructor(private val appContext: Context) {
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(
             appContext,
-            testInterstitialUnitId,
+            getInterstitialUnitId(),
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
@@ -668,6 +674,9 @@ fun UnityRewardedAdPlayerOverlay(
 fun AdBannerComposable(
     modifier: Modifier = Modifier
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val adManager = remember { AdManager.getInstance(context) }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -679,10 +688,10 @@ fun AdBannerComposable(
     ) {
         AndroidView(
             modifier = Modifier.fillMaxWidth(),
-            factory = { context ->
-                AdView(context).apply {
+            factory = { ctx ->
+                AdView(ctx).apply {
                     setAdSize(AdSize.BANNER)
-                    adUnitId = "ca-app-pub-3940256099942544/6300978111" // Test banner ID
+                    adUnitId = adManager.getBannerUnitId()
                     loadAd(AdRequest.Builder().build())
                 }
             }

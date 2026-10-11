@@ -102,7 +102,17 @@ fun AdminScreen(
     val activity = context as? android.app.Activity
 
     var activeTab by remember { mutableIntStateOf(0) }
-    val tabTitles = listOf("Overview", "Ads Monetization", "Puzzles", "Rewards", "Withdrawals", "Users", "Audit Logs")
+    val tabTitles = listOf("Overview", "Ads Monetization", "Puzzles", "Tasks", "Rewards", "Withdrawals", "Users", "Audit Logs")
+
+    val tasks by adminViewModel.tasks.collectAsState()
+
+    // Add / Edit Task State
+    var taskEditId by remember { mutableStateOf<String?>(null) }
+    var taskEditTitle by remember { mutableStateOf("") }
+    var taskEditDesc by remember { mutableStateOf("") }
+    var taskEditReward by remember { mutableStateOf("5000") }
+    var taskEditUrl by remember { mutableStateOf("https://www.youtube.com/@tersee_digitalhub") }
+    var taskEditIcon by remember { mutableStateOf("YOUTUBE") }
 
     // Add Puzzle Form State
     var newTitle by remember { mutableStateOf("") }
@@ -579,7 +589,169 @@ fun AdminScreen(
                 }
 
                 3 -> {
-                    // TAB 3: Financial & Reward Settings (Audit logged!)
+                    // TAB 3: Tasks Management & Editing
+                    item {
+                        GameCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            backgroundColor = GameSurfaceElevated,
+                            borderColor = GameCyan
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = if (taskEditId == null) "Create New Community Task" else "Edit Task",
+                                    color = TextWhite,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                                Text(
+                                    text = "Manage YouTube, Telegram, or custom tasks with real-time editing",
+                                    color = TextSubtitle,
+                                    fontSize = 12.sp
+                                )
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                OutlinedTextField(
+                                    value = taskEditTitle,
+                                    onValueChange = { taskEditTitle = it },
+                                    label = { Text("Task Title", color = TextSubtitle) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextWhite, unfocusedTextColor = TextWhite)
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                OutlinedTextField(
+                                    value = taskEditDesc,
+                                    onValueChange = { taskEditDesc = it },
+                                    label = { Text("Task Description / Instructions", color = TextSubtitle) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextWhite, unfocusedTextColor = TextWhite)
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    OutlinedTextField(
+                                        value = taskEditReward,
+                                        onValueChange = { taskEditReward = it },
+                                        label = { Text("Reward Coins", color = TextSubtitle) },
+                                        modifier = Modifier.weight(1f),
+                                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextWhite, unfocusedTextColor = TextWhite)
+                                    )
+
+                                    OutlinedTextField(
+                                        value = taskEditIcon,
+                                        onValueChange = { taskEditIcon = it },
+                                        label = { Text("Type (YOUTUBE/TELEGRAM)", color = TextSubtitle) },
+                                        modifier = Modifier.weight(1f),
+                                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextWhite, unfocusedTextColor = TextWhite)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                OutlinedTextField(
+                                    value = taskEditUrl,
+                                    onValueChange = { taskEditUrl = it },
+                                    label = { Text("Target Action URL (YouTube Channel / Link)", color = TextSubtitle) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextWhite, unfocusedTextColor = TextWhite)
+                                )
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    GlossyGameButton(
+                                        text = if (taskEditId == null) "SAVE NEW TASK" else "UPDATE TASK",
+                                        onClick = {
+                                            if (taskEditTitle.isNotBlank()) {
+                                                val coins = taskEditReward.toLongOrNull() ?: 1000L
+                                                val task = com.example.data.model.GameTask(
+                                                    id = taskEditId ?: ("task_" + java.util.UUID.randomUUID().toString().take(6)),
+                                                    title = taskEditTitle,
+                                                    description = taskEditDesc,
+                                                    rewardCoins = coins,
+                                                    iconType = taskEditIcon.uppercase(),
+                                                    targetActionUrl = taskEditUrl,
+                                                    isActive = true
+                                                )
+                                                adminViewModel.addOrUpdateTask(task, isNew = taskEditId == null)
+                                                taskEditId = null
+                                                taskEditTitle = ""
+                                                taskEditDesc = ""
+                                                taskEditReward = "5000"
+                                            }
+                                        },
+                                        colorType = ButtonColorType.GOLD,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    if (taskEditId != null) {
+                                        GlossyGameButton(
+                                            text = "CANCEL",
+                                            onClick = {
+                                                taskEditId = null
+                                                taskEditTitle = ""
+                                                taskEditDesc = ""
+                                            },
+                                            colorType = ButtonColorType.MAGENTA,
+                                            modifier = Modifier.weight(0.6f)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(text = "Existing Tasks (${tasks.size})", color = TextWhite, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    items(tasks, key = { it.id }) { t ->
+                        GameCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            backgroundColor = GameSurfaceElevated,
+                            borderColor = GameCardBorder
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(text = t.title, color = TextWhite, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                    Text(text = "${t.iconType} • Reward: %,d 🪙 • ${t.targetActionUrl}".format(t.rewardCoins), color = GameGoldLight, fontSize = 11.sp)
+                                    Text(text = t.description, color = TextSubtitle, fontSize = 11.sp)
+                                }
+
+                                Row {
+                                    IconButton(onClick = {
+                                        taskEditId = t.id
+                                        taskEditTitle = t.title
+                                        taskEditDesc = t.description
+                                        taskEditReward = t.rewardCoins.toString()
+                                        taskEditUrl = t.targetActionUrl
+                                        taskEditIcon = t.iconType
+                                    }) {
+                                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = GameCyan)
+                                    }
+
+                                    IconButton(onClick = { adminViewModel.deleteTask(t.id) }) {
+                                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete", tint = GameMagenta)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                4 -> {
+                    // TAB 4: Financial & Reward Settings (Audit logged!)
                     item {
                         Text(text = "Platform Reward & Financial Settings", color = TextWhite, fontSize = 16.sp, fontWeight = FontWeight.Black)
                         Text(text = "Modifications are audited and take effect instantly", color = TextSubtitle, fontSize = 12.sp)
@@ -597,7 +769,7 @@ fun AdminScreen(
                     }
                 }
 
-                4 -> {
+                5 -> {
                     // TAB 4: Withdrawal Payout Processing
                     item {
                         Text(text = "User Withdrawal Requests (${withdrawals.size})", color = TextWhite, fontSize = 16.sp, fontWeight = FontWeight.Black)
@@ -654,8 +826,8 @@ fun AdminScreen(
                     }
                 }
 
-                5 -> {
-                    // TAB 5: User Management & Coin Adjustment
+                6 -> {
+                    // TAB 6: User Management & Coin Adjustment
                     item {
                         GameCard(
                             modifier = Modifier.fillMaxWidth(),
@@ -730,18 +902,31 @@ fun AdminScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(text = u.username, color = TextWhite, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                     Text(text = "${u.email} • ID: ${u.id}", color = TextMuted, fontSize = 11.sp)
-                                    Text(text = "Balance: ${String.format("%,d", u.coinBalance)} 🪙 • Role: ${u.role}", color = GameGoldLight, fontSize = 12.sp)
+                                    Text(text = "Balance: ${String.format("%,d", u.coinBalance)} 🪙 • Role: ${u.role} • Status: ${u.status}", color = GameGoldLight, fontSize = 12.sp)
+                                }
+
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    // Toggle Admin Role
+                                    GlossyGameButton(
+                                        text = if (u.role == "ADMIN") "DEMOTE" else "MAKE ADMIN",
+                                        onClick = {
+                                            val newRole = if (u.role == "ADMIN") "USER" else "ADMIN"
+                                            adminViewModel.updateUserRoleOrStatus(u, newRole, u.status)
+                                        },
+                                        colorType = if (u.role == "ADMIN") ButtonColorType.MAGENTA else ButtonColorType.CYAN,
+                                        height = 32.dp
+                                    )
                                 }
                             }
                         }
                     }
                 }
 
-                6 -> {
-                    // TAB 6: Immutable Audit Logs
+                7 -> {
+                    // TAB 7: Immutable Audit Logs
                     item {
                         Text(text = "Security Audit Logs (${auditLogs.size})", color = TextWhite, fontSize = 16.sp, fontWeight = FontWeight.Black)
                         Spacer(modifier = Modifier.height(10.dp))

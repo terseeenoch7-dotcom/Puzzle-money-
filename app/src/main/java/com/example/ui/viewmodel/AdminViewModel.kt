@@ -69,6 +69,9 @@ class AdminViewModel(application: Application) : AndroidViewModel(application) {
     val transactions: StateFlow<List<CoinTransaction>> = adminRepo.getAllTransactions()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val tasks: StateFlow<List<com.example.data.model.GameTask>> = adminRepo.getAllTasks()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     private val _feedback = MutableStateFlow(AdminUiFeedback())
     val feedback: StateFlow<AdminUiFeedback> = _feedback.asStateFlow()
 
@@ -148,6 +151,40 @@ class AdminViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             adminRepo.addPuzzle(currentAdminId, puzzle)
             _feedback.value = AdminUiFeedback(message = "Added new puzzle: '$title' ($difficulty)")
+        }
+    }
+
+    fun updatePuzzle(puzzle: PuzzleImage) {
+        viewModelScope.launch {
+            adminRepo.updatePuzzle(currentAdminId, puzzle)
+            _feedback.value = AdminUiFeedback(message = "Updated puzzle: '${puzzle.title}'")
+        }
+    }
+
+    fun addOrUpdateTask(task: com.example.data.model.GameTask, isNew: Boolean = false) {
+        viewModelScope.launch {
+            if (isNew) {
+                adminRepo.addTask(currentAdminId, task)
+                _feedback.value = AdminUiFeedback(message = "Created new task: '${task.title}'")
+            } else {
+                adminRepo.updateTask(currentAdminId, task)
+                _feedback.value = AdminUiFeedback(message = "Updated task: '${task.title}'")
+            }
+        }
+    }
+
+    fun deleteTask(taskId: String) {
+        viewModelScope.launch {
+            adminRepo.deleteTask(currentAdminId, taskId)
+            _feedback.value = AdminUiFeedback(message = "Task removed.")
+        }
+    }
+
+    fun updateUserRoleOrStatus(user: User, newRole: String, newStatus: String) {
+        viewModelScope.launch {
+            val updated = user.copy(role = newRole, status = newStatus, updatedAt = System.currentTimeMillis())
+            adminRepo.updateUser(currentAdminId, updated)
+            _feedback.value = AdminUiFeedback(message = "Updated ${user.username}: Role=$newRole, Status=$newStatus")
         }
     }
 

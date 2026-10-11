@@ -94,12 +94,22 @@ fun PuzzleGameScreen(
     val uiState by gameViewModel.uiState.collectAsState()
     val user by walletViewModel.user.collectAsState()
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val activity = context as? android.app.Activity
+
     BackHandler {
         onNavigateBack()
     }
 
     LaunchedEffect(puzzleId) {
         gameViewModel.loadPuzzle(puzzleId)
+    }
+
+    // Auto 1-Minute Cycle Ad Trigger: when hidden 1-minute timer expires, call ad and grant extra 1 minute
+    LaunchedEffect(uiState.shouldShowCycleAd) {
+        if (uiState.shouldShowCycleAd && activity != null) {
+            gameViewModel.onCycleAdTriggered(activity)
+        }
     }
 
     Box(
@@ -184,23 +194,32 @@ fun PuzzleGameScreen(
                         )
                     }
 
-                    // Timer
+                    // Active Round Progress (Hidden 1-Minute timer kept under the hood)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Timer,
-                            contentDescription = null,
-                            tint = GameCyan,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        val mins = uiState.elapsedSeconds / 60
-                        val secs = uiState.elapsedSeconds % 60
-                        Text(
-                            text = String.format("%02d:%02d", mins, secs),
-                            color = TextWhite,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Black
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = GameSurfaceElevated,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, GameCyan.copy(alpha = 0.5f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    tint = GameCyan,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "ACTIVE ROUND",
+                                    color = GameCyan,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                            }
+                        }
                     }
 
                     // Reward badge
@@ -255,12 +274,12 @@ fun PuzzleGameScreen(
                     testTag = "btn_gemini_ai_hint"
                 )
 
-                // Restart Puzzle
+                // Restart Puzzle (Shows ad upon restart)
                 GameToolButton(
                     icon = Icons.Default.Refresh,
                     label = "Shuffle",
                     isActive = false,
-                    onClick = { gameViewModel.restartPuzzle() },
+                    onClick = { gameViewModel.restartPuzzleWithAd(activity) },
                     testTag = "btn_restart_puzzle"
                 )
             }

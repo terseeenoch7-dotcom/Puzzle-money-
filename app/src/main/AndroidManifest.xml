@@ -15,10 +15,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
 
-        <!-- Google AdMob Application ID (Test ID: ca-app-pub-3940256099942544~3347511713) -->
+        <!-- Google AdMob Application ID: Live Production ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>
+            android:value="ca-app-pub-1621437411635895~5324397293"/>
 
         <activity
             android:name=".MainActivity"
