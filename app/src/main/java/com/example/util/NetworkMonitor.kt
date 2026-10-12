@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class NetworkMonitor(context: Context) {
 
     private val connectivityManager =
-        context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
 
     private val _isOnline = MutableStateFlow(checkInitialConnectivity())
     val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
@@ -27,7 +27,7 @@ class NetworkMonitor(context: Context) {
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .build()
 
-            connectivityManager.registerNetworkCallback(request, object : ConnectivityManager.NetworkCallback() {
+            connectivityManager?.registerNetworkCallback(request, object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     _isOnline.value = true
                 }
@@ -54,8 +54,9 @@ class NetworkMonitor(context: Context) {
 
     private fun checkInitialConnectivity(): Boolean {
         return try {
-            val activeNetwork = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+            val cm = connectivityManager ?: return false
+            val activeNetwork = cm.activeNetwork ?: return false
+            val capabilities = cm.getNetworkCapabilities(activeNetwork) ?: return false
             capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         } catch (e: Exception) {
             false

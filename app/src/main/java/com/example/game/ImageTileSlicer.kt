@@ -23,20 +23,22 @@ object ImageTileSlicer {
 
     private fun loadBitmap(context: Context, identifier: String): Bitmap {
         return try {
-            // Check if it's a drawable resource name
             val resId = context.resources.getIdentifier(identifier, "drawable", context.packageName)
             if (resId != 0) {
-                BitmapFactory.decodeResource(context.resources, resId)
+                val decoded = BitmapFactory.decodeResource(context.resources, resId)
+                decoded ?: createFallbackBitmap(identifier)
             } else {
                 createFallbackBitmap(identifier)
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             createFallbackBitmap(identifier)
         }
     }
 
-    private fun makeSquare(src: Bitmap): Bitmap {
+    private fun makeSquare(src: Bitmap?): Bitmap {
+        if (src == null) return createFallbackBitmap("Puzzle")
         val size = minOf(src.width, src.height)
+        if (size <= 0) return createFallbackBitmap("Puzzle")
         val x = (src.width - size) / 2
         val y = (src.height - size) / 2
         return Bitmap.createBitmap(src, x, y, size, size)
@@ -44,7 +46,7 @@ object ImageTileSlicer {
 
     private fun sliceBitmap(squareBitmap: Bitmap, gridSize: Int): Map<Int, Bitmap> {
         val tileMap = mutableMapOf<Int, Bitmap>()
-        val tileSize = squareBitmap.width / gridSize
+        val tileSize = (squareBitmap.width / gridSize).coerceAtLeast(1)
         val totalTiles = gridSize * gridSize
 
         for (tileId in 0 until totalTiles - 1) {
@@ -64,11 +66,11 @@ object ImageTileSlicer {
             val resId = context.resources.getIdentifier(imageIdentifier, "drawable", context.packageName)
             if (resId != 0) {
                 val bmp = BitmapFactory.decodeResource(context.resources, resId)
-                makeSquare(bmp)
+                makeSquare(bmp ?: createFallbackBitmap(imageIdentifier))
             } else {
                 makeSquare(createFallbackBitmap(imageIdentifier))
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             makeSquare(createFallbackBitmap(imageIdentifier))
         }
     }

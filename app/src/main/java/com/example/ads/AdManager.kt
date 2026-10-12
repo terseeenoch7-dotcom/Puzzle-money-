@@ -120,8 +120,8 @@ data class AdAnalyticsSummary(
 class AdManager private constructor(private val appContext: Context) {
 
     private val db = AppDatabase.getDatabase(appContext)
-    private val scope = CoroutineScope(Dispatchers.IO)
-    private val mainScope = CoroutineScope(Dispatchers.Main)
+    private val scope = CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
+    private val mainScope = CoroutineScope(Dispatchers.Main + kotlinx.coroutines.SupervisorJob())
 
     // Live Production Google AdMob Ad Unit IDs
     val productionRewardedUnitId = "ca-app-pub-1621437411635895/9099285842"
@@ -174,12 +174,8 @@ class AdManager private constructor(private val appContext: Context) {
 
             MobileAds.initialize(appContext) { initStatus ->
                 Log.d(TAG, "AdMob MobileAds initialized: $initStatus")
-                scope.launch {
-                    delay(2500L)
-                    preloadRewardedAd()
-                }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.e(TAG, "Failed to initialize AdMob", e)
         }
     }
@@ -788,8 +784,6 @@ fun AdBannerComposable(
                 AdView(ctx).apply {
                     setAdSize(AdSize.BANNER)
                     adUnitId = adManager.getBannerUnitId()
-                    // Set software layer to prevent GPU Mesa DRI rendernode access exceptions
-                    setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
                     adListener = object : AdListener() {
                         override fun onAdLoaded() {
                             Log.d("AdManager", "AdMob Banner ad loaded.")

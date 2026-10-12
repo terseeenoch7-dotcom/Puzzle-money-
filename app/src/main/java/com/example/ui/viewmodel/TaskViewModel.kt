@@ -61,8 +61,11 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     init {
-        // Preload rewarded ad in background for quick response when user claims
-        adManager.preloadRewardedAd()
+        try {
+            adManager.preloadRewardedAd()
+        } catch (e: Throwable) {
+            Log.e("TaskViewModel", "Failed to preload ad in init", e)
+        }
     }
 
     /**

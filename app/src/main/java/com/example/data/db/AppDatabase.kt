@@ -55,12 +55,25 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
+                val appContext = context.applicationContext
                 val instance = Room.databaseBuilder(
-                    context.applicationContext,
+                    appContext,
                     AppDatabase::class.java,
                     "puzzle_earn_database"
                 )
-                    .addCallback(DatabaseCallback())
+                    .addCallback(object : Callback() {
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob()).launch {
+                                try {
+                                    val database = getDatabase(appContext)
+                                    seedDatabase(database)
+                                } catch (e: Throwable) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+                    })
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
@@ -68,13 +81,16 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private class DatabaseCallback : Callback() {
-            override fun onCreate(db: SupportSQLiteDatabase) {
-                super.onCreate(db)
-                INSTANCE?.let { database ->
-                    CoroutineScope(Dispatchers.IO).launch {
+        fun checkAndSeed(context: Context) {
+            CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob()).launch {
+                try {
+                    val database = getDatabase(context.applicationContext)
+                    val existingUser = database.userDao().getUserSync("user_default_1")
+                    if (existingUser == null) {
                         seedDatabase(database)
                     }
+                } catch (e: Throwable) {
+                    e.printStackTrace()
                 }
             }
         }

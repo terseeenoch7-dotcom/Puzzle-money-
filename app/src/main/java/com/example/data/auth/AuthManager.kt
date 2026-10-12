@@ -32,12 +32,18 @@ sealed class AuthState {
 class AuthManager(private val context: Context) {
 
     private val auth: FirebaseAuth = run {
-        if (com.google.firebase.FirebaseApp.getApps(context).isEmpty()) {
-            com.google.firebase.FirebaseApp.initializeApp(context)
+        try {
+            if (com.google.firebase.FirebaseApp.getApps(context).isEmpty()) {
+                com.google.firebase.FirebaseApp.initializeApp(context)
+            }
+        } catch (e: Throwable) {
+            Log.e(TAG, "Firebase init in AuthManager handled", e)
         }
         FirebaseAuth.getInstance()
     }
-    private val credentialManager: CredentialManager = CredentialManager.create(context)
+    private val credentialManager: CredentialManager by lazy {
+        CredentialManager.create(context)
+    }
 
     private val _authState = MutableStateFlow<AuthState>(
         auth.currentUser?.let { AuthState.Authenticated(it) } ?: AuthState.Idle

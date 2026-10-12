@@ -80,7 +80,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             // Preload rewarded ad in background as user enters puzzle
-            adManager.preloadRewardedAd()
+            try {
+                adManager.preloadRewardedAd()
+            } catch (e: Throwable) {
+                // Ignore ad preload failure
+            }
 
             // Slice image
             val sliced = ImageTileSlicer.loadAndSliceImage(

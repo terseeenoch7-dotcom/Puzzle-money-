@@ -99,9 +99,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (com.google.firebase.FirebaseApp.getApps(this).isEmpty()) {
-            com.google.firebase.FirebaseApp.initializeApp(this)
+        try {
+            if (com.google.firebase.FirebaseApp.getApps(this).isEmpty()) {
+                com.google.firebase.FirebaseApp.initializeApp(this)
+            }
+        } catch (e: Throwable) {
+            android.util.Log.e("MainActivity", "FirebaseApp initialization handled", e)
         }
+        com.example.data.db.AppDatabase.checkAndSeed(this)
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
