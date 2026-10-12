@@ -62,6 +62,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadPuzzle(puzzleId: String) {
         viewModelScope.launch {
+            if (!com.example.util.NetworkMonitor.getInstance(getApplication()).isCurrentlyOnline()) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = "Active internet connection required to play puzzles."
+                )
+                return@launch
+            }
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             val puzzle = repository.getPuzzleById(puzzleId)
             if (puzzle == null) {
@@ -199,6 +206,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
      * Plays preloaded rewarded ad -> validates completion callback -> updates wallet.
      */
     fun claimRewardWithAd(activity: Activity) {
+        if (!com.example.util.NetworkMonitor.getInstance(getApplication()).isCurrentlyOnline()) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Active internet connection required to claim coins.")
+            return
+        }
+
         val pendingId = _uiState.value.pendingRewardId
         val moves = _uiState.value.puzzleState?.moveCount ?: 0
         val duration = _uiState.value.elapsedSeconds
@@ -264,6 +276,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun requestAiHint() {
+        if (!com.example.util.NetworkMonitor.getInstance(getApplication()).isCurrentlyOnline()) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Active internet connection required for AI master tips.")
+            return
+        }
+
         val puzzle = _uiState.value.puzzle ?: return
         val pState = _uiState.value.puzzleState ?: return
 

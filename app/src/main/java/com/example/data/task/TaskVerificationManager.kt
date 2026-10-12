@@ -75,6 +75,10 @@ class TaskVerificationManager(private val context: Context) {
         taskId: String,
         channelId: String = "@tersee_digitalhub"
     ): Result<Boolean> = withContext(Dispatchers.IO) {
+        if (!com.example.util.NetworkMonitor.getInstance(context).isCurrentlyOnline()) {
+            return@withContext Result.failure(Exception("Active internet connection required to verify subscriptions."))
+        }
+
         val verification = db.taskVerificationDao().getVerification(userId, taskId)
             ?: TaskVerification(
                 id = "verif_" + UUID.randomUUID().toString().take(8),

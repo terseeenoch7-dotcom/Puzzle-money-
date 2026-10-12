@@ -31,7 +31,12 @@ sealed class AuthState {
 
 class AuthManager(private val context: Context) {
 
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val auth: FirebaseAuth = run {
+        if (com.google.firebase.FirebaseApp.getApps(context).isEmpty()) {
+            com.google.firebase.FirebaseApp.initializeApp(context)
+        }
+        FirebaseAuth.getInstance()
+    }
     private val credentialManager: CredentialManager = CredentialManager.create(context)
 
     private val _authState = MutableStateFlow<AuthState>(
@@ -58,9 +63,14 @@ class AuthManager(private val context: Context) {
 
     private fun getServerClientId(): String {
         return try {
-            context.getString(R.string.default_web_client_id)
+            val resId = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
+            if (resId != 0) {
+                context.getString(resId)
+            } else {
+                "1004173276169-lau2sk38rj95mmpuing126ao1sva1r6m.apps.googleusercontent.com"
+            }
         } catch (e: Exception) {
-            "166675552864-23p3btdgvsoacmcnjicc7944mme1uub9.apps.googleusercontent.com"
+            "1004173276169-lau2sk38rj95mmpuing126ao1sva1r6m.apps.googleusercontent.com"
         }
     }
 

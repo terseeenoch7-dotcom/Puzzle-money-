@@ -95,6 +95,7 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
      */
     fun toggleVoiceSearch(hasRecordAudioPermission: Boolean) {
         if (!hasRecordAudioPermission) return
+        if (!com.example.util.NetworkMonitor.getInstance(getApplication()).isCurrentlyOnline()) return
 
         if (_isRecordingVoice.value) {
             // Stop and transcribe

@@ -255,12 +255,6 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(20.dp))
         }
 
-        // MIDDLE AD BANNER
-        item(key = "home_middle_banner") {
-            AdBannerComposable()
-            Spacer(modifier = Modifier.height(20.dp))
-        }
-
         // Categories section
         item {
             Row(
@@ -362,12 +356,6 @@ fun HomeScreen(
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))
-        }
-
-        // BOTTOM AD BANNER
-        item(key = "home_bottom_banner") {
-            AdBannerComposable()
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
